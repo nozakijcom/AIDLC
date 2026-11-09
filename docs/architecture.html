@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>最小構成の AI-DLC 構成図</title>
+<style>
+  body {
+    font-family: -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+    background: #f5f6f8;
+    color: #1f2328;
+    margin: 0;
+    padding: 32px 16px;
+  }
+  .page { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; text-align: center; margin: 0 0 4px; }
+  .lead { text-align: center; color: #57606a; font-size: 13px; margin: 0 0 24px; }
+
+  .zone {
+    border: 2px solid;
+    border-radius: 12px;
+    padding: 14px 16px 16px;
+    background: #fff;
+  }
+  .zone > .zone-title { font-weight: bold; font-size: 15px; margin-bottom: 10px; }
+  .zone > .zone-sub { font-weight: normal; font-size: 12px; color: #57606a; margin-left: 6px; }
+  .user  { border-color: #8250df; background: #fbf8ff; text-align: center; }
+  .mac   { border-color: #0969da; background: #f6faff; }
+  .aws   { border-color: #d1242f; background: #fff8f7; }
+  .inner { border: 1.5px dashed #8c959f; border-radius: 10px; padding: 10px 12px 12px; margin-top: 10px; background: #ffffffaa; }
+  .inner-title { font-size: 13px; font-weight: bold; color: #424a53; margin-bottom: 8px; }
+
+  .box {
+    background: #fff;
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .box b { font-size: 14px; }
+  .box .note { color: #57606a; font-size: 12px; }
+  code { font-family: Menlo, monospace; font-size: 12px; background: #eff1f3; padding: 1px 4px; border-radius: 4px; }
+
+  .arrow {
+    text-align: center;
+    color: #57606a;
+    font-size: 12px;
+    margin: 6px 0;
+    line-height: 1.4;
+  }
+  .arrow .line { font-size: 22px; line-height: 1; color: #8c959f; }
+
+  .num {
+    display: inline-block;
+    min-width: 18px; height: 18px;
+    border-radius: 9px;
+    background: #1f2328; color: #fff;
+    font-size: 11px; line-height: 18px; text-align: center;
+    margin-right: 4px;
+  }
+  .steps { margin-top: 24px; background: #fff; border: 1px solid #d0d7de; border-radius: 10px; padding: 12px 18px; font-size: 13px; line-height: 1.8; }
+  .steps h2 { font-size: 15px; margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>最小構成の AI-DLC 構成図</h1>
+  <p class="lead">上から下へ：利用者 → Mac（Kiro とワークスペース） → AWS</p>
+
+  <!-- 利用者 -->
+  <div class="zone user">
+    <div class="zone-title">👤 利用者</div>
+    <div class="box" style="display:inline-block; text-align:left;">
+      <span class="num">1</span>仕様を書く　
+      <span class="num">2</span>チャットで「機能名 を承認して」　
+      <span class="num">7</span>成果物をレビュー・テスト
+    </div>
+  </div>
+
+  <div class="arrow"><div class="line">▼</div></div>
+
+  <!-- Mac -->
+  <div class="zone mac">
+    <div class="zone-title">💻 Mac<span class="zone-sub">ワークスペース（このリポジトリのフォルダ）</span></div>
+
+    <div class="inner">
+      <div class="inner-title">Kiro IDE</div>
+      <div class="box">
+        <b>チャット（Kiro エージェント）</b><br>
+        <span class="num">3</span>承認マーカー <code>.kiro/specs/機能名/.aidlc-approved</code> を作る
+      </div>
+      <div class="arrow"><div class="line">▼</div>作成・保存を検知</div>
+      <div class="box">
+        <b>Agent Hooks</b> <code>.kiro/hooks/</code><br>
+        <code>spec-to-sdlc-trigger-on-create.json</code>・<code>spec-to-sdlc-trigger.json</code><br>
+        <span class="num">4</span><code>invoke_sdlc.py</code> を <code>nohup … &amp;</code> で裏で起動（Hook はすぐ終わる）<br>
+        <span class="note">ほかに test-on-save.json（テスト実行）、security-pre-commit.json（git commit の確認）</span>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="line">▼</div></div>
+
+    <div class="inner">
+      <div class="inner-title">ワークスペースのファイル</div>
+      <div class="box">
+        <b>仕様</b> <code>.kiro/specs/機能名/</code><br>
+        requirements.md・design.md・tasks.md・.aidlc-approved
+      </div>
+      <div class="box">
+        <b>invoke_sdlc.py</b>（.venv の Python 3.15 + boto3。AI ではない普通のプログラム）<br>
+        仕様3ファイルを読んでプロンプトに入れ、dev-agent を呼ぶ<br>
+        <span class="note">二重起動の判定はファイルロックで行う</span>
+      </div>
+      <div class="box">
+        <b>起動の記録</b> <code>.kiro/.aidlc/</code><br>
+        hook.log（経過）・機能名.launched・機能名.lock
+      </div>
+      <div class="box">
+        <b>成果物</b> <code>projects/機能名/</code><br>
+        <span class="num">6</span>コードとテスト + AIDLC_REPORT.md（前の版は .bak-日時 に退避）
+      </div>
+      <div class="box">
+        <b>deploy_dev_agent.py</b> + <b>harness_config.json</b><br>
+        <span class="note">初回だけ使う。dev-agent を AWS に作る（CreateHarness / IAM）</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow"><div class="line">▼</div>InvokeHarness（HTTPS）</div>
+
+  <!-- AWS -->
+  <div class="zone aws">
+    <div class="zone-title">☁️ AWS<span class="zone-sub">us-east-1（バージニア北部）</span></div>
+
+    <div class="box">
+      <b>IAM Identity Center（SSO）</b><br>
+      <span class="note">認証。切れたら <code>aws login</code></span>
+    </div>
+
+    <div class="inner">
+      <div class="inner-title">Amazon Bedrock AgentCore</div>
+      <div class="box">
+        <b>Harness <code>aidlc_dev_agent</code>（dev-agent）</b><br>
+        <span class="num">5</span>仕様どおりに実装し、テストとセキュリティ確認が通るまで直す<br>
+        終わったらファイル一覧を返し、中身を4件ずつ返す
+      </div>
+      <div class="arrow"><div class="line">▲▼</div></div>
+      <div class="box">
+        <b>コード実行環境（サンドボックス）</b><br>
+        <span class="note">実装・テストはすべてこの中。Mac のファイルには直接触らない</span>
+      </div>
+    </div>
+
+    <div class="box">
+      <b>IAM ロール <code>AIDLCDevAgentRole</code></b><br>
+      <span class="note">dev-agent が使う権限</span>
+    </div>
+    <div class="box">
+      <b>Amazon Bedrock：Claude Opus 5</b> <code>us.anthropic.claude-opus-5</code><br>
+      <span class="note">dev-agent の頭脳になるモデル</span>
+    </div>
+  </div>
+
+  <div class="steps">
+    <h2>処理の順番</h2>
+    <span class="num">1</span>人が仕様を書く →
+    <span class="num">2</span>チャットで承認を頼む →
+    <span class="num">3</span>Kiro が承認マーカーを作る →
+    <span class="num">4</span>Hook が invoke_sdlc.py を起動 →
+    <span class="num">5</span>dev-agent が AWS で実装・テスト →
+    <span class="num">6</span>成果物を projects/ に取り込む →
+    <span class="num">7</span>人がレビュー・テスト
+  </div>
+</div>
+</body>
+</html>

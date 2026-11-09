@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "test-on-save",
+      "trigger": "PostFileSave",
+      "description": ".py保存時に projects/ 配下の各プロジェクトのテストを実行",
+      "matcher": "projects/.*\\.py$",
+      "action": {
+        "type": "command",
+        "command": "for d in projects/*/; do [ -d \"$d/tests\" ] && (cd \"$d\" && ../../.venv/bin/python -m pytest -q -x -p no:cacheprovider); done",
+        "timeout": 300
+      }
+    }
+  ]
+}

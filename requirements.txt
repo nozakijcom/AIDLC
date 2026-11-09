@@ -1,0 +1,12 @@
+# エージェント本体はAgentCore Harnessがサーバー側で harness_config.json から起動する。
+# ローカルにエージェントのコードは無いため、必要なのはAWS APIを叩くboto3だけ。
+#
+# 1.43.66 で確認済み: bedrock-agentcore / bedrock-agentcore-control のクライアントが利用可能。
+# botocore[crt] も併せて必要（SSOログイン方式の認証情報プロバイダが要求する）。
+boto3>=1.43.66
+botocore[crt]>=1.43.66
+
+# 以下は現時点で未使用のため外している。必要になった時点で戻す:
+#   strands-agents          … ローカルでエージェントを実装する場合
+#   bedrock-agentcore       … Harness外でAgentCore SDKを直接使う場合
+#   aws-opentelemetry-distro … AgentCore Observabilityを配線する場合

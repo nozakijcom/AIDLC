@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.DS_Store
+# 承認マーカー（ローカルで実行を始めるための印。公開しない）
+.kiro/specs/*/.aidlc-approved
+
+# AI-DLC のローカル起動状態（specごとの指紋記録）
+.kiro/.aidlc/

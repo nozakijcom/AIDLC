@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "security-pre-commit",
+      "trigger": "PreToolUse",
+      "description": "git commitコマンドのときだけ確認を求める。他のbashコマンドは即通過させ、往復を発生させない",
+      "matcher": "execute_bash",
+      "action": {
+        "type": "command",
+        "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); c=d.get('tool_input',{}).get('command',''); print(json.dumps({'hookSpecificOutput':{'permissionDecision':'ask','permissionDecisionReason':'git commitを検出しました。コミット対象の差分にCRITICAL/HIGHの脆弱性がないか確認してください。'}})) if 'git commit' in c else None\"",
+        "timeout": 5
+      }
+    }
+  ]
+}

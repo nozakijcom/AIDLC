@@ -1,0 +1,17 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "spec-to-sdlc-trigger-on-create",
+      "trigger": "PostFileCreate",
+      "description": "承認マーカーが新規作成されたらAI-DLCを裏で起動（Kiro は Hook を約60秒で打ち切るため）。経過は .kiro/.aidlc/hook.log に残す",
+      "matcher": "\\.kiro/specs/[^/]+/\\.aidlc-approved$",
+      "action": {
+        "type": "command",
+        "command": "mkdir -p .kiro/.aidlc && echo \"$(date '+%F %T') Hook発火(作成)\" >> .kiro/.aidlc/hook.log && nohup .venv/bin/python -u invoke_sdlc.py --auto-start >> .kiro/.aidlc/hook.log 2>&1 < /dev/null &",
+        "timeout": 30
+      },
+      "enabled": true
+    }
+  ]
+}
